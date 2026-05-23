@@ -2,6 +2,7 @@ package com.example.jackpotservice.jackpot.infrastructure.persistence;
 
 import com.example.jackpotservice.jackpot.domain.JackpotReward;
 import com.example.jackpotservice.jackpot.infrastructure.persistence.jpa.JackpotRewardEntity;
+import com.example.jackpotservice.jackpot.infrastructure.persistence.jpa.JackpotRewardId;
 import com.example.jackpotservice.jackpot.infrastructure.persistence.jpa.JackpotRewardJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,9 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class JackpotRewardRepositoryAdapterShould {
@@ -66,5 +69,33 @@ class JackpotRewardRepositoryAdapterShould {
 
         verify(jackpotRewardJpaRepository).save(captor.capture());
         assertThat(captor.getValue().getRewardAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void return_empty_when_reward_not_found() {
+        when(jackpotRewardJpaRepository.findByIdBetId("bet-1")).thenReturn(Optional.empty());
+
+        var result = adapter.findByBetId("bet-1");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void return_reward_with_correct_fields_when_found() {
+        var entity = JackpotRewardEntity.builder()
+                .id(new JackpotRewardId("bet-1", "jackpot-1"))
+                .userId("user-1")
+                .rewardAmount(new BigDecimal("1000.00"))
+                .createdAt(LocalDateTime.now())
+                .build();
+        when(jackpotRewardJpaRepository.findByIdBetId("bet-1")).thenReturn(Optional.of(entity));
+
+        var result = adapter.findByBetId("bet-1");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getBetId()).isEqualTo("bet-1");
+        assertThat(result.get().getJackpotId()).isEqualTo("jackpot-1");
+        assertThat(result.get().getUserId()).isEqualTo("user-1");
+        assertThat(result.get().getRewardAmount()).isEqualByComparingTo("1000.00");
     }
 }

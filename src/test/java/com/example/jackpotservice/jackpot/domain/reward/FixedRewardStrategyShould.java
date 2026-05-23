@@ -12,8 +12,8 @@ class FixedRewardStrategyShould {
     void return_boolean_result_for_evaluation() {
         var strategy = new FixedRewardStrategy();
 
-        // can't assert exact result due to randomness — just verify it doesn't throw and returns boolean
-        var result = strategy.evaluate(new BigDecimal("1000.00"));
+        var result = strategy.evaluate(new BigDecimal("1000.00"), new BigDecimal("1000.00"));
+
         assertThat(result).isIn(true, false);
     }
 
@@ -23,14 +23,4 @@ class FixedRewardStrategyShould {
 
         assertThat(strategy.type()).isEqualTo(RewardStrategy.StrategyType.FIXED);
     }
-
-    @Test
-    void return_correct_strategy_type() {
-        var strategy = new FixedRewardStrategy();
-
-        var type = strategy.type();
-
-        assertThat(type).isEqualTo(RewardStrategy.StrategyType.FIXED);
-    }
-
 }

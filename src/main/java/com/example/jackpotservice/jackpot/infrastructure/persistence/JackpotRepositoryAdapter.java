@@ -45,8 +45,8 @@ public class JackpotRepositoryAdapter implements JackpotRepository {
                 RewardStrategyFactory.create(entity.getRewardStrategyType());
         return Jackpot.reconstitute(
                 entity.getJackpotId(),
-                entity.getPoolAmount(),
                 entity.getInitialPoolAmount(),
+                entity.getPoolAmount(),
                 contributionStrategy,
                 rewardStrategy
         );

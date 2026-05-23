@@ -65,7 +65,7 @@ public final class Jackpot {
 
     public JackpotReward evaluate(JackpotContribution contribution) {
         Objects.requireNonNull(contribution, "contribution is required");
-        var won = rewardStrategy.evaluate(poolAmount);
+        var won = rewardStrategy.evaluate(poolAmount, initialPoolAmount);
         var rewardAmount = BigDecimal.ZERO;
         if (won) {
             rewardAmount = poolAmount;

@@ -1,8 +1,11 @@
 package com.example.jackpotservice.jackpot.domain.contribution;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+@Slf4j
 public final class VariableContributionStrategy implements ContributionStrategy {
 
     private final BigDecimal initialRate = new BigDecimal("0.20");
@@ -13,6 +16,7 @@ public final class VariableContributionStrategy implements ContributionStrategy 
     public BigDecimal calculate(BigDecimal betAmount, BigDecimal currentPoolAmount) {
         var decayedRate = initialRate.subtract(currentPoolAmount.multiply(decayRate));
         var effectiveRate = decayedRate.max(minimumRate);
+        log.info("Effective contribution rate for variable contribution jackpot: {}", effectiveRate);
         return betAmount.multiply(effectiveRate).setScale(4, RoundingMode.HALF_UP);
     }
 

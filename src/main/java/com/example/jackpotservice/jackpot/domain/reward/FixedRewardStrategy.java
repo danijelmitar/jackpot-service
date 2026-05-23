@@ -8,7 +8,7 @@ public final class FixedRewardStrategy implements RewardStrategy {
     private final BigDecimal chance = new BigDecimal("0.10");
 
     @Override
-    public boolean evaluate(BigDecimal poolAmount) {
+    public boolean evaluate(BigDecimal currentPoolAmount, BigDecimal initialPoolAmount) {
         if (chance.compareTo(BigDecimal.ZERO) == 0) return false;
         if (chance.compareTo(BigDecimal.ONE) == 0) return true;
         return RandomGenerator.getDefault().nextDouble() < chance.doubleValue();

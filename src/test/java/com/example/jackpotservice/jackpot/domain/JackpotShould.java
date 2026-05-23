@@ -61,52 +61,38 @@ class JackpotShould {
     }
 
     @Test
-    void return_reward_with_zero_amount_when_bet_does_not_win() {
+    void return_reward_with_pool_amount_when_bet_wins() {
         var rewardStrategy = mock(RewardStrategy.class);
-        when(rewardStrategy.evaluate(any())).thenReturn(false);
+        when(rewardStrategy.evaluate(any(), any())).thenReturn(true);
         var jackpot = jackpot(mock(ContributionStrategy.class), rewardStrategy);
-        var contribution = JackpotContribution.builder()
-                .betId("bet-1").userId("user-1").jackpotId("jackpot-1")
-                .stakeAmount(new BigDecimal("10.00")).contributionAmount(new BigDecimal("2.00"))
-                .currentJackpotAmount(new BigDecimal("102.00")).createdAt(java.time.LocalDateTime.now())
-                .build();
+        var contribution = buildContribution();
 
         var reward = jackpot.evaluate(contribution);
 
-        assertThat(reward.getRewardAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(reward.getRewardAmount()).isEqualByComparingTo("100.00");
         assertThat(reward.getBetId()).isEqualTo("bet-1");
         assertThat(reward.getUserId()).isEqualTo("user-1");
         assertThat(reward.getJackpotId()).isEqualTo("jackpot-1");
     }
 
     @Test
-    void return_reward_with_pool_amount_when_bet_wins() {
+    void return_reward_with_zero_amount_when_bet_does_not_win() {
         var rewardStrategy = mock(RewardStrategy.class);
-        when(rewardStrategy.evaluate(any())).thenReturn(true);
+        when(rewardStrategy.evaluate(any(), any())).thenReturn(false);
         var jackpot = jackpot(mock(ContributionStrategy.class), rewardStrategy);
-        var contribution = JackpotContribution.builder()
-                .betId("bet-1").userId("user-1").jackpotId("jackpot-1")
-                .stakeAmount(new BigDecimal("10.00")).contributionAmount(new BigDecimal("2.00"))
-                .currentJackpotAmount(new BigDecimal("102.00")).createdAt(java.time.LocalDateTime.now())
-                .build();
 
-        var reward = jackpot.evaluate(contribution);
+        var reward = jackpot.evaluate(buildContribution());
 
-        assertThat(reward.getRewardAmount()).isEqualByComparingTo("100.00");
+        assertThat(reward.getRewardAmount()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
     void reset_pool_to_initial_amount_when_bet_wins() {
         var rewardStrategy = mock(RewardStrategy.class);
-        when(rewardStrategy.evaluate(any())).thenReturn(true);
+        when(rewardStrategy.evaluate(any(), any())).thenReturn(true);
         var jackpot = jackpot(mock(ContributionStrategy.class), rewardStrategy);
-        var contribution = JackpotContribution.builder()
-                .betId("bet-1").userId("user-1").jackpotId("jackpot-1")
-                .stakeAmount(new BigDecimal("10.00")).contributionAmount(new BigDecimal("2.00"))
-                .currentJackpotAmount(new BigDecimal("102.00")).createdAt(java.time.LocalDateTime.now())
-                .build();
 
-        jackpot.evaluate(contribution);
+        jackpot.evaluate(buildContribution());
 
         assertThat(jackpot.getPoolAmount()).isEqualByComparingTo("100.00");
     }
@@ -114,33 +100,23 @@ class JackpotShould {
     @Test
     void not_reset_pool_when_bet_does_not_win() {
         var rewardStrategy = mock(RewardStrategy.class);
-        when(rewardStrategy.evaluate(any())).thenReturn(false);
+        when(rewardStrategy.evaluate(any(), any())).thenReturn(false);
         var jackpot = jackpot(mock(ContributionStrategy.class), rewardStrategy);
-        var contribution = JackpotContribution.builder()
-                .betId("bet-1").userId("user-1").jackpotId("jackpot-1")
-                .stakeAmount(new BigDecimal("10.00")).contributionAmount(new BigDecimal("2.00"))
-                .currentJackpotAmount(new BigDecimal("102.00")).createdAt(java.time.LocalDateTime.now())
-                .build();
 
-        jackpot.evaluate(contribution);
+        jackpot.evaluate(buildContribution());
 
         assertThat(jackpot.getPoolAmount()).isEqualByComparingTo("100.00");
     }
 
     @Test
-    void delegate_evaluation_to_reward_strategy() {
+    void delegate_evaluation_to_reward_strategy_with_pool_and_initial_pool() {
         var rewardStrategy = mock(RewardStrategy.class);
-        when(rewardStrategy.evaluate(any())).thenReturn(false);
+        when(rewardStrategy.evaluate(any(), any())).thenReturn(false);
         var jackpot = jackpot(mock(ContributionStrategy.class), rewardStrategy);
-        var contribution = JackpotContribution.builder()
-                .betId("bet-1").userId("user-1").jackpotId("jackpot-1")
-                .stakeAmount(new BigDecimal("10.00")).contributionAmount(new BigDecimal("2.00"))
-                .currentJackpotAmount(new BigDecimal("102.00")).createdAt(java.time.LocalDateTime.now())
-                .build();
 
-        jackpot.evaluate(contribution);
+        jackpot.evaluate(buildContribution());
 
-        verify(rewardStrategy).evaluate(new BigDecimal("100.00"));
+        verify(rewardStrategy).evaluate(new BigDecimal("100.00"), new BigDecimal("100.00"));
     }
 
     @Test
@@ -182,8 +158,7 @@ class JackpotShould {
     @Test
     void throw_exception_when_bet_id_is_null() {
         var jackpot = jackpot(mock(ContributionStrategy.class), mock(RewardStrategy.class));
-
-        var betAmount = new BigDecimal("10.00");
+        var betAmount = new BigDecimal("100.00");
         assertThatThrownBy(() -> jackpot.contribute(null, "user-1", betAmount))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("betId is required");
@@ -192,7 +167,6 @@ class JackpotShould {
     @Test
     void throw_exception_when_user_id_is_null() {
         var jackpot = jackpot(mock(ContributionStrategy.class), mock(RewardStrategy.class));
-
         var betAmount = new BigDecimal("10.00");
         assertThatThrownBy(() -> jackpot.contribute("bet-1", null, betAmount))
                 .isInstanceOf(NullPointerException.class)
@@ -215,5 +189,17 @@ class JackpotShould {
         assertThatThrownBy(() -> jackpot.evaluate(null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("contribution is required");
+    }
+
+    private JackpotContribution buildContribution() {
+        return JackpotContribution.builder()
+                .betId("bet-1")
+                .userId("user-1")
+                .jackpotId("jackpot-1")
+                .stakeAmount(new BigDecimal("10.00"))
+                .contributionAmount(new BigDecimal("2.00"))
+                .currentJackpotAmount(new BigDecimal("102.00"))
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
     }
 }

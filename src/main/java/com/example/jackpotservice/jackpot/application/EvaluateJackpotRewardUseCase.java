@@ -19,6 +19,12 @@ public class EvaluateJackpotRewardUseCase {
 
     @Transactional
     public Optional<JackpotReward> execute(String betId) {
+        var byBetId = jackpotRewardRepository.findByBetId(betId);
+
+        if (byBetId.isPresent()) {
+            return byBetId;
+        }
+
         var contribution = jackpotContributionRepository.findByBetId(betId);
         if (contribution.isEmpty()) {
             return Optional.empty();

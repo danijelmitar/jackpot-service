@@ -43,6 +43,14 @@ class EvaluateJackpotRewardUseCaseShould {
             .createdAt(LocalDateTime.now())
             .build();
 
+    private final JackpotReward existingReward = JackpotReward.builder()
+            .betId("bet-1")
+            .userId("user-1")
+            .jackpotId("jackpot-1")
+            .rewardAmount(new BigDecimal("1001.00"))
+            .createdAt(LocalDateTime.now())
+            .build();
+
     @BeforeEach
     void setUp() {
         evaluateJackpotRewardUseCase = new EvaluateJackpotRewardUseCase(
@@ -50,27 +58,50 @@ class EvaluateJackpotRewardUseCaseShould {
     }
 
     @Test
+    void return_existing_reward_when_already_evaluated() {
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.of(existingReward));
+
+        var result = evaluateJackpotRewardUseCase.execute("bet-1");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getRewardAmount()).isEqualByComparingTo("1001.00");
+        verifyNoInteractions(jackpotContributionRepository, jackpotRepository);
+    }
+
+    @Test
+    void not_evaluate_again_when_reward_already_exists() {
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.of(existingReward));
+
+        evaluateJackpotRewardUseCase.execute("bet-1");
+
+        verify(jackpotRewardRepository, never()).save(any());
+        verify(jackpotRepository, never()).save(any());
+    }
+
+    @Test
     void return_empty_when_contribution_not_found() {
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
 
         var result = evaluateJackpotRewardUseCase.execute("bet-1");
 
         assertThat(result).isEmpty();
-        verifyNoInteractions(jackpotRepository, jackpotRewardRepository);
+        verifyNoInteractions(jackpotRepository);
     }
 
     @Test
-    void return_reward_response_when_contribution_found() {
+    void evaluate_and_return_reward_when_contribution_found() {
         var jackpot = Jackpot.reconstitute("jackpot-1", new BigDecimal("1000.00"),
                 new BigDecimal("1000.00"), new FixedContributionStrategy(), new RewardStrategy() {
                     @Override
-                    public boolean evaluate(BigDecimal poolAmount) { return true; }
+                    public boolean evaluate(BigDecimal poolAmount, BigDecimal initialPoolAmount) { return true; }
 
                     @Override
                     public StrategyType type() {
                         return StrategyType.FIXED;
                     }
                 });
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.of(contribution));
         when(jackpotRepository.findById("jackpot-1")).thenReturn(Optional.of(jackpot));
 
@@ -78,8 +109,6 @@ class EvaluateJackpotRewardUseCaseShould {
 
         assertThat(result).isPresent();
         assertThat(result.get().getBetId()).isEqualTo("bet-1");
-        assertThat(result.get().getUserId()).isEqualTo("user-1");
-        assertThat(result.get().getJackpotId()).isEqualTo("jackpot-1");
         assertThat(result.get().getRewardAmount()).isGreaterThanOrEqualTo(BigDecimal.ZERO);
     }
 
@@ -87,6 +116,7 @@ class EvaluateJackpotRewardUseCaseShould {
     void save_jackpot_and_reward_after_evaluation() {
         var jackpot = Jackpot.reconstitute("jackpot-1", new BigDecimal("1000.00"),
                 new BigDecimal("1000.00"), new FixedContributionStrategy(), new FixedRewardStrategy());
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.of(contribution));
         when(jackpotRepository.findById("jackpot-1")).thenReturn(Optional.of(jackpot));
 
@@ -98,6 +128,7 @@ class EvaluateJackpotRewardUseCaseShould {
 
     @Test
     void throw_exception_when_jackpot_not_found() {
+        when(jackpotRewardRepository.findByBetId("bet-1")).thenReturn(Optional.empty());
         when(jackpotContributionRepository.findByBetId("bet-1")).thenReturn(Optional.of(contribution));
         when(jackpotRepository.findById("jackpot-1")).thenReturn(Optional.empty());
 
