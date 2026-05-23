@@ -1,0 +1,39 @@
+### Place a bet on fixed jackpot
+POST http://localhost:8080/api/v1/bets
+Content-Type: application/json
+
+{
+  "userId": "user-1",
+  "jackpotId": "jackpot-fixed",
+  "amount": "10.00"
+}
+
+> {%
+  client.global.set("betId", response.body.betId);
+%}
+
+---
+
+### Place a bet on variable jackpot
+POST http://localhost:8080/api/v1/bets
+Content-Type: application/json
+
+{
+  "userId": "user-1",
+  "jackpotId": "jackpot-variable",
+  "amount": "10.00"
+}
+
+> {%
+  client.global.set("betId", response.body.betId);
+%}
+
+---
+
+### Evaluate jackpot reward for fixed jackpot
+POST http://localhost:8080/api/v1/jackpots/bets/{{betId}}/evaluate
+
+---
+
+### Evaluate jackpot reward for variable jackpot
+POST http://localhost:8080/api/v1/jackpots/bets/{{betId}}/evaluate
