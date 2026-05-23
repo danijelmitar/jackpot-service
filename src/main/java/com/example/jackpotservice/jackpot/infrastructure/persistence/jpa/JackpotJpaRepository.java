@@ -1,0 +1,6 @@
+package com.example.jackpotservice.jackpot.infrastructure.persistence.jpa;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface JackpotJpaRepository extends JpaRepository<JackpotEntity, String> {
+}
