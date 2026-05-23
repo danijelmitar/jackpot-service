@@ -1,8 +1,8 @@
 package com.example.jackpotservice.jackpot;
 
+import com.example.jackpotservice.common.messaging.BetPlacedMessage;
 import com.example.jackpotservice.jackpot.application.ContributeToJackpotUseCase;
 import com.example.jackpotservice.jackpot.api.JackpotRewardResponse;
-import com.example.jackpotservice.jackpot.infrastructure.messaging.JackpotBetPlacedEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
@@ -25,7 +25,7 @@ class EvaluateJackpotRewardE2EShould {
 
     @Test
     void return_reward_response_when_bet_has_been_contributed() {
-        var event = new JackpotBetPlacedEvent("bet-e2e-1", "user-1", "jackpot-fixed", new BigDecimal("10.00"));
+        var event = new BetPlacedMessage("bet-e2e-1", "user-1", "jackpot-fixed", new BigDecimal("10.00"));
         contributeToJackpotUseCase.execute(event.betId(), event.userId(), event.jackpotId(), event.betAmount());
 
         var response = restTestClient.post()

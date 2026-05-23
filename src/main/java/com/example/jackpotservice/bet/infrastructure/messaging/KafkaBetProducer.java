@@ -2,12 +2,11 @@ package com.example.jackpotservice.bet.infrastructure.messaging;
 
 import com.example.jackpotservice.bet.domain.Bet;
 import com.example.jackpotservice.bet.domain.BetEventPublisher;
+import com.example.jackpotservice.common.messaging.BetPlacedMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
 
 @Slf4j
 @Component
@@ -28,10 +27,4 @@ public class KafkaBetProducer implements BetEventPublisher {
         return new BetPlacedMessage(bet.getId(), bet.getUserId(), bet.getJackpotId(), bet.getBetAmount());
     }
 
-    public record BetPlacedMessage(
-            String betId,
-            String userId,
-            String jackpotId,
-            BigDecimal betAmount
-    ) {}
 }
