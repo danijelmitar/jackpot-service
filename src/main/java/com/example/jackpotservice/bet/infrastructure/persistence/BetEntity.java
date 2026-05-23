@@ -1,4 +1,4 @@
-package com.example.jackpotservice.bet.infrastructure;
+package com.example.jackpotservice.bet.infrastructure.persistence;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

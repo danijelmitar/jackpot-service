@@ -2,7 +2,7 @@ package com.example.jackpotservice.bet;
 
 import com.example.jackpotservice.bet.api.BetRequest;
 import com.example.jackpotservice.bet.api.BetResponse;
-import com.example.jackpotservice.bet.infrastructure.BetJpaRepository;
+import com.example.jackpotservice.bet.infrastructure.persistence.BetJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;

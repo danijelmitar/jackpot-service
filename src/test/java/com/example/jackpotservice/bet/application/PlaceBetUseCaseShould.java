@@ -1,6 +1,7 @@
 package com.example.jackpotservice.bet.application;
 
 import com.example.jackpotservice.bet.domain.Bet;
+import com.example.jackpotservice.bet.domain.BetEventPublisher;
 import com.example.jackpotservice.bet.domain.BetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +14,7 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PlaceBetUseCaseShould {
@@ -22,11 +22,14 @@ class PlaceBetUseCaseShould {
     @Mock
     private BetRepository betRepository;
 
+    @Mock
+    private BetEventPublisher betEventPublisher;
+
     private PlaceBetUseCase placeBetUseCase;
 
     @BeforeEach
     void setUp() {
-        placeBetUseCase = new PlaceBetUseCase(betRepository);
+        placeBetUseCase = new PlaceBetUseCase(betRepository, betEventPublisher);
     }
 
     @Test
@@ -35,10 +38,23 @@ class PlaceBetUseCaseShould {
         var jackpotId = "jackpot-1";
         var amount = new BigDecimal("10.00");
 
-        var bet = placeBetUseCase.execute(userId, jackpotId, amount);
+        var response = placeBetUseCase.execute(userId, jackpotId, amount);
 
-        assertThat(bet.getId()).isNotNull().isNotEmpty();
+        assertThat(response.getId()).isNotNull().isNotEmpty();
         verify(betRepository).save(any(Bet.class));
+    }
+
+    @Test
+    void publish_bet_event_after_persisting_bet() {
+        var userId = "user-1";
+        var jackpotId = "jackpot-1";
+        var amount = new BigDecimal("10.00");
+        var inOrder = inOrder(betRepository, betEventPublisher);
+
+        placeBetUseCase.execute(userId, jackpotId, amount);
+
+        inOrder.verify(betRepository).save(any(Bet.class));
+        inOrder.verify(betEventPublisher).publish(any(Bet.class));
     }
 
     @Test
@@ -51,5 +67,19 @@ class PlaceBetUseCaseShould {
         assertThatThrownBy(() -> placeBetUseCase.execute(userId, jackpotId, amount))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("DB unavailable");
+
+        verify(betEventPublisher, never()).publish(any());
+    }
+
+    @Test
+    void propagate_exception_when_event_publishing_fails() {
+        var userId = "user-1";
+        var jackpotId = "jackpot-1";
+        var amount = new BigDecimal("10.00");
+        doThrow(new RuntimeException("Kafka unavailable")).when(betEventPublisher).publish(any(Bet.class));
+
+        assertThatThrownBy(() -> placeBetUseCase.execute(userId, jackpotId, amount))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Kafka unavailable");
     }
 }

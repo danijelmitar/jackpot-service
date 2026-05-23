@@ -1,4 +1,4 @@
-package com.example.jackpotservice.bet.infrastructure;
+package com.example.jackpotservice.bet.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

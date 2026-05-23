@@ -1,4 +1,4 @@
-package com.example.jackpotservice.bet.infrastructure;
+package com.example.jackpotservice.bet.infrastructure.persistence;
 
 import com.example.jackpotservice.bet.domain.Bet;
 import com.example.jackpotservice.bet.domain.BetRepository;

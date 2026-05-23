@@ -1,6 +1,9 @@
 package com.example.jackpotservice.bet.infrastructure;
 
 import com.example.jackpotservice.bet.domain.Bet;
+import com.example.jackpotservice.bet.infrastructure.persistence.BetEntity;
+import com.example.jackpotservice.bet.infrastructure.persistence.BetJpaRepository;
+import com.example.jackpotservice.bet.infrastructure.persistence.BetRepositoryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

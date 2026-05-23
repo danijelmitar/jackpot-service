@@ -1,0 +1,5 @@
+# Redis
+embedded:
+  kafka:
+    topics-to-create:
+      - jackpot-bets
