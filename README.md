@@ -22,7 +22,7 @@ Docker Compose will automatically start Kafka on startup via Spring Boot Docker 
 
 ### H2 Console
 Available at `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:file:./data/jackpot_db`
+- JDBC URL: `jdbc:h2:mem:jackpot_db`
 - Username: `sa`
 - Password: *(empty)*
 
